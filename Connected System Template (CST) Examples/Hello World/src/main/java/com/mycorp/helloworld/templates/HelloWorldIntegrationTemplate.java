@@ -4,12 +4,15 @@ import static com.mycorp.helloworld.templates.HelloWorldConnectedSystemTemplate.
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.appian.connectedsystems.simplified.sdk.SimpleIntegrationTemplate;
 import com.appian.connectedsystems.simplified.sdk.configuration.SimpleConfiguration;
 import com.appian.connectedsystems.templateframework.sdk.ExecutionContext;
 import com.appian.connectedsystems.templateframework.sdk.IntegrationResponse;
 import com.appian.connectedsystems.templateframework.sdk.TemplateId;
+import com.appian.connectedsystems.templateframework.sdk.configuration.DisplayHint;
+import com.appian.connectedsystems.templateframework.sdk.configuration.LocalTypeDescriptor;
 import com.appian.connectedsystems.templateframework.sdk.configuration.PropertyPath;
 import com.appian.connectedsystems.templateframework.sdk.diagnostics.IntegrationDesignerDiagnostic;
 import com.appian.connectedsystems.templateframework.sdk.metadata.IntegrationTemplateRequestPolicy;
@@ -29,13 +32,22 @@ public class HelloWorldIntegrationTemplate extends SimpleIntegrationTemplate {
     SimpleConfiguration connectedSystemConfiguration,
     PropertyPath propertyPath,
     ExecutionContext executionContext) {
+    LocalTypeDescriptor complexType = LocalTypeDescriptor.builder()
+        .name("complextype")
+        .properties(
+            textProperty("TextProp")
+                .label("textprop")
+                .isExpressionable(true)
+                .displayHint(DisplayHint.EXPRESSION)
+                .description("testdesc")
+                .build()
+        )
+        .build();
     return integrationConfiguration.setProperties(
-        // Make sure you make constants for all keys so that you can easily
-        // access the values during execution
-        textProperty(INTEGRATION_PROP_KEY).label("Text Property")
-            .isRequired(true)
-            .description("This will be concatenated with the connected system text property on execute")
-            .build());
+        localTypeProperty(complexType)
+        .label("test")
+        .build()
+    );
   }
 
   @Override
@@ -43,6 +55,11 @@ public class HelloWorldIntegrationTemplate extends SimpleIntegrationTemplate {
       SimpleConfiguration integrationConfiguration,
       SimpleConfiguration connectedSystemConfiguration,
       ExecutionContext executionContext) {
+    try {
+      TimeUnit.SECONDS.sleep(10);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
     Map<String,Object> requestDiagnostic = new HashMap<>();
     String csValue = connectedSystemConfiguration.getValue(CS_PROP_KEY);
     requestDiagnostic.put("csValue", csValue);
